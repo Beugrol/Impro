@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote Impro — Catégories de match</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #085041;
+    --green-mid: #0F6E56;
+    --purple-light: #EEEDFE;
+    --purple-mid: #7F77DD;
+    --purple-dark: #3C3489;
+    --blue-light: #E6F1FB;
+    --blue-mid: #378ADD;
+    --blue-dark: #042C53;
+    --amber-light: #FAEEDA;
+    --amber-mid: #BA7517;
+    --amber-dark: #633806;
+    --red-light: #FCEBEB;
+    --red-mid: #A32D2D;
+    --red-dark: #791F1F;
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text-muted: #6b6b67;
+    --text-faint: #a0a09c;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 99px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #242422;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f0f0ee;
+      --text-muted: #a0a09c;
+      --text-faint: #6b6b67;
+      --green-light: #04342C;
+      --purple-light: #26215C;
+      --blue-light: #042C53;
+      --amber-light: #412402;
+      --red-light: #501313;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem; }
+
+  /* Header */
+  .site-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 12px; }
+  .site-header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .site-header h1 span { color: var(--green); }
+
+  /* Setup screen */
+  #setup { max-width: 400px; margin: 4rem auto; text-align: center; }
+  #setup .icon { font-size: 56px; margin-bottom: 1rem; }
+  #setup h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  #setup p { color: var(--text-muted); font-size: 14px; margin-bottom: 1.5rem; line-height: 1.7; }
+  #setup .field { margin-bottom: 10px; }
+  #setup input[type=text] {
+    width: 100%; padding: 11px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text); font-size: 15px;
+  }
+  #setup input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.15); }
+  #setup .btn-join {
+    width: 100%; padding: 11px; border-radius: var(--radius); border: none;
+    background: var(--green); color: #fff; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  #setup .btn-join:hover { background: var(--green-mid); }
+  #setup .btn-join:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+  .players-preview { margin-top: 1.5rem; font-size: 13px; color: var(--text-muted); }
+  .players-preview .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
+  .pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px 12px; font-size: 13px; color: var(--text-muted); }
+  .pill.me { background: var(--green-light); border-color: var(--green); color: var(--green-dark); font-weight: 500; }
+
+  /* Config banner */
+  #configBanner {
+    background: var(--amber-light); border: 1px solid var(--amber-mid);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    font-size: 13px; color: var(--amber-dark);
+  }
+  #configBanner strong { display: block; margin-bottom: 4px; font-size: 14px; }
+  #configBanner input[type=text] {
+    width: 100%; padding: 8px 10px; border-radius: 6px; margin-top: 8px;
+    border: 1px solid var(--amber-mid); background: var(--surface);
+    color: var(--text); font-size: 13px; font-family: monospace;
+  }
+  #configBanner input:focus { outline: none; border-color: var(--amber-dark); }
+  #configBanner .config-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  #configBanner button {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--amber-mid);
+    background: var(--surface); color: var(--amber-dark); font-size: 13px; cursor: pointer;
+  }
+  #configBanner button:hover { background: var(--amber-light); }
+  #configBanner a { color: var(--amber-dark); }
+
+  /* Top bar */
+  .top-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .me-badge { display: flex; align-items: center; gap: 6px; background: var(--green-light); border: 1px solid var(--green); border-radius: var(--radius-pill); padding: 5px 14px; font-size: 13px; font-weight: 500; color: var(--green-dark); }
+  .btn-ghost { padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+  /* Players online */
+  .players-row { display: flex; align-items: center; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
+
+  /* Stats */
+  .stats-bar { display: flex; gap: 10px; margin-bottom: 1.75rem; flex-wrap: wrap; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; min-width: 110px; }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1rem 1.125rem;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card-top { display: flex; align-items: flex-start; gap: 10px; }
+  .cat-icon { width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+  .card-tag { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-pill); display: inline-block; font-weight: 500; }
+  .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .vote-row { display: flex; gap: 8px; }
+  .vote-btn {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 12px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border-strong); font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--text-muted); transition: all 0.15s; flex: 1;
+  }
+  .vote-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .vote-btn.yes.voted { background: #EAF3DE; border-color: #639922; color: #3B6D11; font-weight: 500; }
+  .vote-btn.no.voted { background: var(--red-light); border-color: var(--red-mid); color: var(--red-dark); font-weight: 500; }
+  .progress-wrap { height: 4px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: var(--radius-pill); background: var(--green); transition: width 0.3s; }
+  .vote-counts { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint); }
+  .who-voted { font-size: 11px; min-height: 14px; color: var(--text-faint); }
+
+  /* Footer actions */
+  .footer-actions { margin-top: 2.5rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn-refresh { padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; }
+  .btn-refresh:hover { background: var(--bg); }
+  .btn-danger { padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--red-mid); background: transparent; color: var(--red-dark); font-size: 13px; cursor: pointer; }
+  .btn-danger:hover { background: var(--red-light); }
+  .last-sync { font-size: 12px; color: var(--text-faint); margin-left: auto; }
+
+  /* Share bar */
+  .share-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .share-bar span { font-size: 12px; font-family: monospace; color: var(--text-muted); flex: 1; word-break: break-all; }
+  .btn-copy { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text); white-space: nowrap; }
+  .btn-copy.copied { color: #3B6D11; border-color: #639922; }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SETUP SCREEN -->
+  <div id="setup">
+    <div class="icon">🎭</div>
+    <h2>Vote impro — spectacle</h2>
+    <p>Entrez votre prénom pour rejoindre le vote et choisir les catégories de match pour votre spectacle.</p>
+    <div class="field">
+      <input type="text" id="nameInput" placeholder="Votre prénom…" maxlength="20" autocomplete="off" />
+    </div>
+    <button class="btn-join" id="joinBtn" disabled>Rejoindre le vote →</button>
+    <div class="players-preview" id="playersPreview"></div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main" class="hidden">
+
+    <!-- Config banner (shown when no API key set) -->
+    <div id="configBanner">
+      <strong>⚙️ Configuration requise</strong>
+      Pour partager les votes entre participants, créez un bin gratuit sur
+      <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> (sans inscription) et collez l'ID ici.
+      <br><small>Ou ignorez ceci pour utiliser le stockage local uniquement (votes non partagés).</small>
+      <input type="text" id="binIdInput" placeholder="ID du bin  (ex: 6639ab…)" />
+      <div class="config-actions">
+        <button id="saveBinBtn">💾 Enregistrer</button>
+        <button id="skipBinBtn">Ignorer (local uniquement)</button>
+      </div>
+    </div>
+
+    <div class="site-header">
+      <h1>🎭 Vote — <span>catégories de match</span></h1>
+    </div>
+
+    <div class="share-bar">
+      <span id="shareUrl"></span>
+      <button class="btn-copy" id="copyBtn">📋 Copier le lien</button>
+    </div>
+
+    <div class="top-bar">
+      <div class="me-badge">👤 <span id="meName"></span></div>
+      <button class="btn-ghost" id="changeBtn">Changer de nom</button>
+    </div>
+
+    <div class="players-row" id="playersRow"></div>
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="grid" id="grid"></div>
+
+    <div class="footer-actions">
+      <button class="btn-refresh" id="refreshBtn">🔄 Actualiser les votes</button>
+      <button class="btn-danger" id="resetBtn">🗑 Réinitialiser tout</button>
+      <span class="last-sync" id="lastSync"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── CATEGORIES ────────────────────────────────────────────────────────────
+const CATEGORIES = 
+[
+  {
+    id:'auteur',
+    label:'À la manière d’un auteur',
+    tag:'style',
+    bg:'#E1F5EE',
+    border:'#1D9E75',
+    text:'#085041',
+    icon:'✍️',
+    desc:'À la manière d\'un auteur célèbre : Molière, Shakespeare, Kafka, Hitchcock, Audiard, Tarantino, Spielberg, etc.'
+  },
+  {
+    id:'genre',
+    label:'À la manière d’un genre',
+    tag:'style',
+    bg:'#E8F1FF',
+    border:'#3A7BFF',
+    text:'#123A75',
+    icon:'🎭',
+    desc:'Improvisation inspirée d\'un genre théâtral, cinématographique ou littéraire : western, science-fiction, sitcom, manga, théâtre antique, etc.'
+  },
+  {
+    id:'alphabet',
+    label:'Alphabet',
+    tag:'contrainte',
+    bg:'#FEF9C3',
+    border:'#CA8A04',
+    text:'#713F12',
+    icon:'🔤',
+    desc:'Chaque réplique doit suivre l\'ordre alphabétique.'
+  },
+  {
+    id:'animal',
+    label:'Animal',
+    tag:'contrainte',
+    bg:'#FE09C3',
+    border:'#DA8F00',
+    text:'#713F12',
+    icon:'🐔',
+    desc:'Un animal est attribué avant chaque apparition pour inspirer la scène.'
+  },
+  {
+    id:'avec-accessoire',
+    label:'Avec accessoire',
+    tag:'contrainte',
+    bg:'#FFE4E6',
+    border:'#E11D48',
+    text:'#881337',
+    icon:'🪑',
+    desc:'Un accessoire imposé doit être utilisé pendant toute l\'improvisation.'
+  },
+  {
+    id:'avec-didascalies',
+    label:'Avec didascalies',
+    tag:'contrainte',
+    bg:'#F3E8FF',
+    border:'#9333EA',
+    text:'#581C87',
+    icon:'📖',
+    desc:'Un narrateur lit des didascalies que les joueurs doivent immédiatement interpréter.'
+  },
+  {
+    id:'blackout',
+    label:'Black-Out',
+    tag:'expression',
+    bg:'#E2E8F0',
+    border:'#334155',
+    text:'#0F172A',
+    icon:'🌑',
+    desc:'Improvisation uniquement sonore jouée dans le noir.'
+  },
+  {
+    id:'cadavre-exquis',
+    label:'Cadavre exquis',
+    tag:'concept',
+    bg:'#ECFCCB',
+    border:'#65A30D',
+    text:'#365314',
+    icon:'🧠',
+    desc:'Chaque joueur poursuit l\'histoire sans connaître l\'ensemble des éléments précédents.'
+  },
+  {
+    id:'camembert',
+    label:'Camembert',
+    tag:'concept',
+    bg:'#FFF7ED',
+    border:'#EA580C',
+    text:'#7C2D12',
+    icon:'🧀',
+    desc:'L\'improvisation est découpée en segments aux contraintes différentes.'
+  },
+  {
+    id:'chantee',
+    label:'Chantée',
+    tag:'expression',
+    bg:'#F3E8FF',
+    border:'#A855F7',
+    text:'#4C1D95',
+    icon:'🎵',
+    desc:'Tous les dialogues sont chantés.'
+  },
+  {
+    id:'clip',
+    label:'Clip',
+    tag:'style',
+    bg:'#DBEAFE',
+    border:'#2563EB',
+    text:'#1E3A8A',
+    icon:'📺',
+    desc:'Improvisation inspirée des clips musicaux et de leur mise en scène.'
+  },
+  {
+    id:'croisement',
+    label:'Croisement',
+    tag:'concept',
+    bg:'#E0F2FE',
+    border:'#0284C7',
+    text:'#0C4A6E',
+    icon:'🔀',
+    desc:'Les joueurs échangent leurs personnages lorsque l\'arbitre siffle.'
+  },
+  {
+    id:'deja-vu',
+    label:'Déjà-vu',
+    tag:'concept',
+    bg:'#FAE8FF',
+    border:'#C026D3',
+    text:'#701A75',
+    icon:'🔁',
+    desc:'Une scène déjà jouée réapparaît avec des variations.'
+  },
+  {
+    id:'doublage',
+    label:'Doublage',
+    tag:'expression',
+    bg:'#E0E7FF',
+    border:'#4F46E5',
+    text:'#312E81',
+    icon:'🎙️',
+    desc:'Certains joueurs prêtent leur voix pendant que d\'autres jouent physiquement la scène.'
+  },
+  {
+    id:'double-poursuite',
+    label:'Double poursuite',
+    tag:'concept',
+    bg:'#DCFCE7',
+    border:'#16A34A',
+    text:'#14532D',
+    icon:'🔂',
+    desc:'Les équipes alternent plusieurs reprises d\'une même histoire.'
+  },
+  {
+    id:'fusillade',
+    label:'Fusillade',
+    tag:'concept',
+    bg:'#FEE2E2',
+    border:'#DC2626',
+    text:'#7F1D1D',
+    icon:'💥',
+    desc:'Succession rapide de mini-improvisations très courtes.'
+  },
+  {
+    id:'gibberish',
+    label:'Gibberish',
+    tag:'expression',
+    bg:'#F0FDF4',
+    border:'#22C55E',
+    text:'#14532D',
+    icon:'🗣️',
+    desc:'Langage inventé incompréhensible accompagné de traduction ou de jeu corporel.'
+  },
+  {
+    id:'marionnettes',
+    label:'Marionnettes',
+    tag:'concept',
+    bg:'#FDF2F8',
+    border:'#DB2777',
+    text:'#831843',
+    icon:'🪆',
+    desc:'Des joueurs manipulent physiquement les autres comme des marionnettes.'
+  },
+  {
+    id:'mimee',
+    label:'Mimée',
+    tag:'expression',
+    bg:'#ECFEFF',
+    border:'#0891B2',
+    text:'#164E63',
+    icon:'🤹',
+    desc:'Improvisation entièrement jouée sans paroles, uniquement avec le corps.'
+  },
+  {
+    id:'musicale',
+    label:'Musicale',
+    tag:'ajout',
+    bg:'#EDE9FE',
+    border:'#7C3AED',
+    text:'#4C1D95',
+    icon:'🎼',
+    desc:'Présence d\'un musicien ou d\'une ambiance musicale imposée.'
+  },
+  {
+    id:'peau-de-chagrin',
+    label:'Peau de chagrin',
+    tag:'concept',
+    bg:'#FAE8FF',
+    border:'#C026D3',
+    text:'#701A75',
+    icon:'⏳',
+    desc:'La même improvisation est rejouée avec une durée de plus en plus courte.'
+  },
+  {
+    id:'playback',
+    label:'Playback',
+    tag:'concept',
+    bg:'#DBEAFE',
+    border:'#2563EB',
+    text:'#1E3A8A',
+    icon:'🎬',
+    desc:'Les voix et les corps sont joués par des personnes différentes.'
+  },
+  {
+    id:'poursuite',
+    label:'Poursuite',
+    tag:'concept',
+    bg:'#ECFCCB',
+    border:'#65A30D',
+    text:'#365314',
+    icon:'🏃',
+    desc:'Une équipe commence l\'improvisation et l\'autre doit la terminer.'
+  },
+  {
+    id:'rimée',
+    label:'Rimée',
+    tag:'expression',
+    bg:'#FFF3E6',
+    border:'#FF9F43',
+    text:'#7A4300',
+    icon:'📝',
+    desc:'Toutes les phrases doivent rimer.'
+  },
+  {
+    id:'roman-photo',
+    label:'Roman photo',
+    tag:'concept',
+    bg:'#FEF3C7',
+    border:'#D97706',
+    text:'#78350F',
+    icon:'📸',
+    desc:'Alternance de poses figées et de narration externe.'
+  },
+  {
+    id:'sans-parole',
+    label:'Sans parole',
+    tag:'expression',
+    bg:'#FCE7F3',
+    border:'#EC4899',
+    text:'#831843',
+    icon:'🤐',
+    desc:'Aucun mot intelligible ne peut être prononcé.'
+  },
+  {
+    id:'silencieuse',
+    label:'Silencieuse',
+    tag:'expression',
+    bg:'#F1F5F9',
+    border:'#64748B',
+    text:'#1E293B',
+    icon:'🔇',
+    desc:'Aucun son n\'est autorisé.'
+  },
+  {
+    id:'site-specifique',
+    label:'Site spécifique',
+    tag:'contrainte',
+    bg:'#DCFCE7',
+    border:'#15803D',
+    text:'#14532D',
+    icon:'📍',
+    desc:'L\'improvisation doit tenir compte d\'un lieu imposé très précis.'
+  },
+  {
+    id:'split-screen',
+    label:'Split screen',
+    tag:'concept',
+    bg:'#E0E7FF',
+    border:'#4338CA',
+    text:'#312E81',
+    icon:'🖥️',
+    desc:'Deux scènes simultanées sont jouées côte à côte.'
+  },
+  {
+    id:'suicide',
+    label:'Suicide',
+    tag:'concept',
+    bg:'#FEE2E2',
+    border:'#B91C1C',
+    text:'#450A0A',
+    icon:'☠️',
+    desc:'Les joueurs doivent finir dans une situation dramatique imposée.'
+  },
+  {
+    id:'telephone-arabe',
+    label:'Téléphone arabe',
+    tag:'concept',
+    bg:'#F0FDFA',
+    border:'#0F766E',
+    text:'#134E4A',
+    icon:'☎️',
+    desc:'Une improvisation est transmise de joueur en joueur avec déformations progressives.'
+  },
+  {
+    id:'telenovela',
+    label:'Télénovela',
+    tag:'style',
+    bg:'#FFE4E6',
+    border:'#FB7185',
+    text:'#881337',
+    icon:'📺',
+    desc:'Improvisation exagérément mélodramatique inspirée des feuilletons télévisés.'
+  },
+  {
+    id:'zapping',
+    label:'Zapping',
+    tag:'concept',
+    bg:'#F8FAFC',
+    border:'#475569',
+    text:'#0F172A',
+    icon:'📡',
+    desc:'L\'arbitre change constamment la scène ou le style comme avec une télécommande.'
+  },
+  {
+    id:'moins-un',
+    label:'-1',
+    tag:'contrainte',
+    bg:'#FEE2E2',
+    border:'#DC2626',
+    text:'#7F1D1D',
+    icon:'➖',
+    desc:'À chaque nouvelle scène ou reprise, un joueur disparaît jusqu\'à ce qu\'il n\'en reste plus qu\'un.'
+  },
+  {
+    id:'regressive',
+    label:'Régressive',
+    tag:'concept',
+    bg:'#FEF3C7',
+    border:'#D97706',
+    text:'#78350F',
+    icon:'⏪',
+    desc:'L\'histoire est jouée à rebours, en remontant progressivement le fil des événements.'
+  },
+  {
+    id:'degressive',
+    label:'Dégressive',
+    tag:'concept',
+    bg:'#FDF4FF',
+    border:'#A21CAF',
+    text:'#581C87',
+    icon:'📉',
+    desc:'Chaque nouvelle version de l\'improvisation réduit progressivement les moyens, le texte ou l\'énergie de jeu.'
+  },
+  {
+    id:'cumulative',
+    label:'Cumulative',
+    tag:'concept',
+    bg:'#ECFCCB',
+    border:'#65A30D',
+    text:'#365314',
+    icon:'📚',
+    desc:'Chaque joueur ajoute un nouvel élément que les suivants doivent mémoriser et réutiliser.'
+  },
+  {
+    id:'flashback',
+    label:'Flashback',
+    tag:'narration',
+    bg:'#DBEAFE',
+    border:'#2563EB',
+    text:'#1E3A8A',
+    icon:'🕰️',
+    desc:'L\'improvisation alterne entre le présent et des retours dans le passé des personnages.'
+  },
+  {
+    id:'flashforward',
+    label:'Flashforward',
+    tag:'narration',
+    bg:'#E0F2FE',
+    border:'#0284C7',
+    text:'#0C4A6E',
+    icon:'🚀',
+    desc:'Des projections dans le futur viennent interrompre ou enrichir la scène principale.'
+  },
+  {
+    id:'ralenti',
+    label:'Ralenti',
+    tag:'expression',
+    bg:'#F1F5F9',
+    border:'#64748B',
+    text:'#1E293B',
+    icon:'🐢',
+    desc:'Toute l\'improvisation ou certaines scènes sont jouées au ralenti.'
+  },
+  {
+    id:'acceleree',
+    label:'Accélérée',
+    tag:'expression',
+    bg:'#FFE4E6',
+    border:'#E11D48',
+    text:'#881337',
+    icon:'⚡',
+    desc:'Le rythme de jeu doit être extrêmement rapide, avec très peu de temps de réaction.'
+  },
+  {
+    id:'emotion-imposee',
+    label:'Émotion imposée',
+    tag:'contrainte',
+    bg:'#FCE7F3',
+    border:'#EC4899',
+    text:'#831843',
+    icon:'😡',
+    desc:'Chaque joueur doit maintenir une émotion imposée pendant toute l\'improvisation.'
+  }
+]
+;
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const LS_PLAYER  = 'impro_player';
+const LS_VOTES   = 'impro_votes';
+const LS_BIN     = 'impro_bin_id';
+const LS_SKIP    = 'impro_skip_bin';
+
+let currentPlayer = localStorage.getItem(LS_PLAYER) || null;
+let binId = localStorage.getItem(LS_BIN) || null;
+let skipBin = localStorage.getItem(LS_SKIP) === '1';
+let state = { votes: {}, players: [] };
+
+// ─── JSONBIN helpers ────────────────────────────────────────────────────────
+async function fetchState() {
+  if (!binId) { loadLocal(); return; }
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Access-Key': '' }
+    });
+    if (!r.ok) throw new Error('fetch failed');
+    const data = await r.json();
+    state = data.record;
+    saveLocal();
+    updateLastSync();
+  } catch(e) { loadLocal(); }
+}
+
+async function pushState() {
+  saveLocal();
+  if (!binId) return;
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': '' },
+      body: JSON.stringify(state)
+    });
+    updateLastSync();
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try { const s = localStorage.getItem(LS_VOTES); if (s) state = JSON.parse(s); } catch(e) {}
+}
+function saveLocal() {
+  localStorage.setItem(LS_VOTES, JSON.stringify(state));
+}
+function updateLastSync() {
+  const el = document.getElementById('lastSync');
+  if (el) el.textContent = 'Sync : ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ─── VOTE helpers ───────────────────────────────────────────────────────────
+function getVote(catId) { return state.votes?.[catId]?.[currentPlayer] ?? null; }
+function countVotes(catId) {
+  const cv = state.votes?.[catId] || {};
+  let yes=0, no=0;
+  Object.values(cv).forEach(v => { if(v==='yes') yes++; else if(v==='no') no++; });
+  return {yes, no};
+}
+function whoVoted(catId, val) {
+  const cv = state.votes?.[catId] || {};
+  return Object.entries(cv).filter(([,v])=>v===val).map(([k])=>k);
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────────────
+function renderSetup() {
+  const players = state.players || [];
+  const el = document.getElementById('playersPreview');
+  if (players.length) {
+    el.innerHTML = `<div style="margin-bottom:8px">Déjà inscrit${players.length>1?'s':''} :</div>
+      <div class="pills">${players.map(p=>`<span class="pill">${p}</span>`).join('')}</div>`;
+  } else {
+    el.innerHTML = '<div style="margin-top:12px;font-size:13px;color:var(--text-faint)">Soyez le premier à rejoindre !</div>';
+  }
+}
+
+function renderConfigBanner() {
+  const banner = document.getElementById('configBanner');
+  if (binId || skipBin) { banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+}
+
+function renderPlayersRow() {
+  const players = state.players || [];
+  const el = document.getElementById('playersRow');
+  if (!players.length) { el.innerHTML=''; return; }
+  el.innerHTML = '👥 ' + players.map(p =>
+    `<span class="pill ${p===currentPlayer?'me':''}">${p}</span>`
+  ).join('');
+}
+
+function renderStats() {
+  const yesWin = CATEGORIES.filter(c => { const {yes,no}=countVotes(c.id); return yes>no && (yes+no)>0; }).length;
+  const myVotes = CATEGORIES.filter(c => getVote(c.id)!==null).length;
+  const players = (state.players||[]).length;
+  document.getElementById('statsBar').innerHTML = [
+    { val: CATEGORIES.length, lbl: 'matchs à évaluer' },
+    { val: yesWin,            lbl: 'majorité oui' },
+    { val: players,           lbl: 'participant' + (players!==1?'s':'') },
+    { val: myVotes + '/' + CATEGORIES.length, lbl: 'mes votes' },
+  ].map(s=>`<div class="stat"><div class="stat-val">${s.val}</div><div class="stat-lbl">${s.lbl}</div></div>`).join('');
+}
+
+function renderGrid() {
+  document.getElementById('grid').innerHTML = CATEGORIES.map(cat => {
+    const myVote = getVote(cat.id);
+    const {yes,no} = countVotes(cat.id);
+    const total = yes+no;
+    const pct = total>0 ? Math.round(yes/total*100) : 0;
+    const yesWho = whoVoted(cat.id,'yes');
+    const noWho  = whoVoted(cat.id,'no');
+    const whoHtml = [
+      yesWho.length ? `<span style="color:#3B6D11">✓ ${yesWho.join(', ')}</span>` : '',
+      noWho.length  ? `<span style="color:#A32D2D">✗ ${noWho.join(', ')}</span>`  : '',
+    ].filter(Boolean).join(' · ');
+    return `<div class="card">
+      <div class="card-top">
+        <div class="cat-icon" style="background:${cat.bg};border:1px solid ${cat.border}">${cat.icon}</div>
+        <div>
+          <div class="card-title">${cat.label}</div>
+          <span class="card-tag" style="background:${cat.bg};color:${cat.text};border:1px solid ${cat.border}">${cat.tag}</span>
+        </div>
+      </div>
+      <div class="card-desc">${cat.desc}</div>
+      <div class="vote-row">
+        <button class="vote-btn yes ${myVote==='yes'?'voted':''}" onclick="vote('${cat.id}','yes')">👍 Oui</button>
+        <button class="vote-btn no  ${myVote==='no' ?'voted':''}" onclick="vote('${cat.id}','no')">👎 Non</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      <div class="vote-counts">
+        <span>👍 ${yes}</span>
+        <span>${total} vote${total!==1?'s':''}</span>
+        <span>${no} 👎</span>
+      </div>
+      <div class="who-voted">${whoHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderConfigBanner();
+  renderPlayersRow();
+  renderStats();
+  renderGrid();
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────────────────────
+window.vote = async function(catId, val) {
+  if (!state.votes) state.votes = {};
+  if (!state.votes[catId]) state.votes[catId] = {};
+  if (state.votes[catId][currentPlayer] === val) delete state.votes[catId][currentPlayer];
+  else state.votes[catId][currentPlayer] = val;
+  renderStats(); renderGrid();
+  await pushState();
+};
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+async function boot() {
+  await fetchState();
+  if (currentPlayer) {
+    showMain();
+  } else {
+    renderSetup();
+  }
+}
+
+function showMain() {
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('meName').textContent = currentPlayer;
+  document.getElementById('shareUrl').textContent = window.location.href;
+  renderAll();
+}
+
+// Setup form
+const nameInput = document.getElementById('nameInput');
+const joinBtn   = document.getElementById('joinBtn');
+nameInput.addEventListener('input', () => { joinBtn.disabled = nameInput.value.trim().length < 2; });
+nameInput.addEventListener('keydown', e => { if (e.key==='Enter' && !joinBtn.disabled) joinBtn.click(); });
+joinBtn.addEventListener('click', async () => {
+  const name = nameInput.value.trim();
+  if (name.length < 2) return;
+  currentPlayer = name;
+  localStorage.setItem(LS_PLAYER, name);
+  if (!state.players) state.players = [];
+  if (!state.players.includes(name)) { state.players.push(name); await pushState(); }
+  showMain();
+});
+
+// Config banner
+document.getElementById('saveBinBtn').addEventListener('click', () => {
+  const val = document.getElementById('binIdInput').value.trim();
+  if (!val) return;
+  binId = val;
+  localStorage.setItem(LS_BIN, binId);
+  renderConfigBanner();
+  fetchState().then(renderAll);
+});
+document.getElementById('skipBinBtn').addEventListener('click', () => {
+  skipBin = true;
+  localStorage.setItem(LS_SKIP, '1');
+  renderConfigBanner();
+});
+
+// Buttons
+document.getElementById('changeBtn').addEventListener('click', () => {
+  localStorage.removeItem(LS_PLAYER);
+  currentPlayer = null;
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+  nameInput.value = '';
+  joinBtn.disabled = true;
+  renderSetup();
+});
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copier le lien'; btn.classList.remove('copied'); }, 2000);
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  fetchState().then(renderAll);
+});
+document.getElementById('resetBtn').addEventListener('click', async () => {
+  if (!confirm('Réinitialiser tous les votes et participants ?')) return;
+  state = { votes: {}, players: [] };
+  localStorage.removeItem(LS_PLAYER);
+  currentPlayer = null;
+  await pushState();
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+  nameInput.value = '';
+  joinBtn.disabled = true;
+  renderSetup();
+});
+
+boot();
+</script>
+</body>
+</html>
