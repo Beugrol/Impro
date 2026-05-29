@@ -1271,9 +1271,12 @@ joinBtn.addEventListener('click', async () => {
 // Config banner
 document.getElementById('saveBinBtn').addEventListener('click', () => {
   const val = document.getElementById('binIdInput').value.trim();
-  if (!val) return;
+  const key = "$2a$10$IPY.B1Q4OhM9BMeXPRj1qeqJ0LTE5Yyax90u2sVPNtQaCiI1vZ2Fe";
+  if (!val || !key) { alert('Veuillez renseigner l\'ID du bin et la X-Access-Key.'); return; }
   binId = val;
+  accessKey = key;
   localStorage.setItem(LS_BIN, binId);
+  localStorage.setItem(LS_KEY, accessKey);
   renderConfigBanner();
   fetchState().then(renderAll);
 });
