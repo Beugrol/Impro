@@ -1085,11 +1085,13 @@ const LS_PLAYER  = 'impro_player';
 const LS_VOTES   = 'impro_votes';
 const LS_BIN     = 'impro_bin_id';
 const LS_SKIP    = 'impro_skip_bin';
-
+const LS_KEY     = 'impro_bin_key';
+ 
 let currentPlayer = localStorage.getItem(LS_PLAYER) || null;
 let binId = localStorage.getItem(LS_BIN) || null;
 let skipBin = localStorage.getItem(LS_SKIP) === '1';
 let state = { votes: {}, players: [] };
+let accessKey = localStorage.getItem(LS_KEY) || null;
 
 // ─── JSONBIN helpers ────────────────────────────────────────────────────────
 async function fetchState() {
